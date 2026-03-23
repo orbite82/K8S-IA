@@ -7,42 +7,63 @@ Treinar subir um k8s via IA
 
 Repositório de estudo e deploy local de Kubernetes com Terraform, Minikube e uma aplicação Python + PostgreSQL, incluindo monitoramento via Helm (Prometheus + Grafana).
 
+
+
+1️⃣ setup-minikube.sh – Cria e inicializa Minikube, configura kubectl.
+
+2️⃣ main.tf atualizado – Com image_pull_policy = "IfNotPresent" e ajustes finais.
+
+3️⃣ README passo a passo atualizado – Com todos os comandos corrigidos e fluxo completo.
+
 Estrutura do projeto
 
 ```
 K8S-IA/
-├── app/                     # Aplicação Python
-│   ├── app.py
-│   ├── Dockerfile
-│   └── requirements.txt
-├── helm/                    # Charts Helm para monitoramento
-│   └── prometheus-grafana.tf
-├── kind-config.yaml         # Config Kind (opcional)
+├── app/ # Aplicação Python
+│ ├── app.py
+│ ├── Dockerfile
+│ └── requirements.txt
+├── helm/ # Charts Helm para monitoramento
+│ └── prometheus-grafana.tf
+├── kind-config.yaml # Config Kind (opcional)
 ├── LICENSE
 ├── README.md
-└── terraform/               # Terraform para Kubernetes
-    ├── main.tf
-    ├── output.tf
-    ├── providers.tf
-    ├── variables.tf
-    ├── terraform.tfstate
-    └── setup-minikube.sh    # Script para criar/configurar Minikube
+└── terraform/ # Terraform para Kubernetes
+├── main.tf
+├── output.tf
+├── providers.tf
+├── variables.tf
+├── terraform.tfstate
+└── setup-minikube.sh
 ```
-Requisitos
-Docker instalado
-Minikube ou Kind instalado
-Kubectl instalado
-Terraform >= 1.6.0
+## Requisitos
 
-O script setup-minikube.sh automatiza a criação do cluster Minikube e configuração do kubectl.
+- Docker instalado
+- Minikube ou Kind instalado
+- Kubectl instalado
+- Terraform >= 1.6.0
 
-Passo a passo para executar
-✅ 1. Clonar o repositório
+---
+
+## Passo a passo completo
+
+✅ 1️⃣ 1.0 Clonar o repositório
 
 ```
 git clone https://github.com/orbite82/K8S-IA.git
 cd K8S-IA/terraform
 ```
+
+✅ 1️⃣ 1.1 Build da aplicação Docker
+```bash
+cd app
+docker build -t my-local-app:latest .
+docker images
+
+O script setup-minikube.sh automatiza a criação do cluster Minikube e configuração do kubectl.
+
+Passo a passo para executar
+
 ✅ 2. Build da aplicação Docker
 
 Dentro da pasta app/:
@@ -54,26 +75,56 @@ docker images
 ```
 ✅ 3. Inicializar Minikube
 
-Dentro da pasta terraform/:
+✅ Passos para corrigir de forma definitiva
 
-```cd ../terraform
-chmod +x setup-minikube.sh
-./setup-minikube.sh
-```
-O script faz:
-
-Verifica/instala Minikube (se necessário)
-Cria o cluster k8s-ia
-Configura o kubectl para usar o cluster
-Mostra nodes ativos e namespace padrão
-
-Você também pode iniciar manualmente com:
+Crie um cluster Kubernetes local
+Você precisa de um cluster ativo. Pode ser Minikube ou Kind. Exemplo com Minikube:
 
 ```
 minikube start --profile k8s-ia --driver=docker
+```
+---
+
+# OU
+
+setup-minikube.sh
+
+Crie esse arquivo dentro de terraform/:
+
+```
+#!/bin/bash
+
+# ======================================================
+# Script para criar/configurar Minikube para K8S-IA
+# ======================================================
+
+PROFILE_NAME="k8s-ia"
+DRIVER="docker"
+K8S_VERSION="v1.35.1"
+
+echo "🚀 Iniciando Minikube (profile=$PROFILE_NAME)..."
+
+# Inicia Minikube
+minikube start --profile $PROFILE_NAME --driver=$DRIVER --kubernetes-version=$K8S_VERSION
+
+# Habilita addons essenciais
+minikube addons enable storage-provisioner --profile $PROFILE_NAME
+
+# Configura kubectl para usar o cluster correto
+kubectl config use-context $PROFILE_NAME
+
+echo "✅ Minikube pronto! Cluster ativo:"
+kubectl cluster-info
+kubectl get nodes
+```
+
+Verifique nodes e namespace padrão:
+
+```
 kubectl get nodes
 kubectl get namespaces
 ```
+
 
 ✅ 4. Configurar provider do Terraform
 
@@ -88,21 +139,197 @@ provider "kubernetes" {
 ```
 Isso garante que o Terraform se conecte ao cluster correto.
 
+main.tf atualizado
+
+```
+# ======================
+# Namespace
+# ======================
+resource "kubernetes_namespace_v1" "app_ns" {
+  metadata {
+    name = var.namespace_name
+  }
+}
+
+# ======================
+# Deployment: Aplicação
+# ======================
+resource "kubernetes_deployment_v1" "app" {
+  metadata {
+    name      = "my-app"
+    namespace = kubernetes_namespace_v1.app_ns.metadata[0].name
+    labels = {
+      app = "my-app"
+    }
+  }
+
+  spec {
+    replicas = var.app_replicas
+
+    selector {
+      match_labels = {
+        app = "my-app"
+      }
+    }
+
+    template {
+      metadata {
+        labels = {
+          app = "my-app"
+        }
+      }
+
+      spec {
+        container {
+          name  = "my-app"
+          image = var.app_image
+          image_pull_policy = "IfNotPresent"
+
+          port {
+            container_port = var.app_container_port
+          }
+
+          resources {
+            limits = {
+              cpu    = "500m"
+              memory = "256Mi"
+            }
+            requests = {
+              cpu    = "250m"
+              memory = "128Mi"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+# ======================
+# Deployment: PostgreSQL
+# ======================
+resource "kubernetes_deployment_v1" "postgres" {
+  metadata {
+    name      = "postgres"
+    namespace = kubernetes_namespace_v1.app_ns.metadata[0].name
+    labels = {
+      app = "postgres"
+    }
+  }
+
+  spec {
+    replicas = var.postgres_replicas
+
+    selector {
+      match_labels = {
+        app = "postgres"
+      }
+    }
+
+    template {
+      metadata {
+        labels = {
+          app = "postgres"
+        }
+      }
+
+      spec {
+        container {
+          name  = "postgres"
+          image = var.postgres_image
+          image_pull_policy = "IfNotPresent"
+
+          port {
+            container_port = var.postgres_port
+          }
+
+          env {
+            name  = "POSTGRES_USER"
+            value = var.postgres_user
+          }
+          env {
+            name  = "POSTGRES_PASSWORD"
+            value = var.postgres_password
+          }
+          env {
+            name  = "POSTGRES_DB"
+            value = var.postgres_db
+          }
+
+          resources {
+            limits = {
+              cpu    = "500m"
+              memory = "512Mi"
+            }
+            requests = {
+              cpu    = "250m"
+              memory = "256Mi"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+# ======================
+# Service: Aplicação
+# ======================
+resource "kubernetes_service_v1" "app_service" {
+  metadata {
+    name      = "my-app-service"
+    namespace = kubernetes_namespace_v1.app_ns.metadata[0].name
+  }
+
+  spec {
+    selector = {
+      app = "my-app"
+    }
+
+    port {
+      port        = 80
+      target_port = var.app_container_port
+    }
+
+    type = "ClusterIP"
+  }
+}
+
+# ======================
+# Service: PostgreSQL
+# ======================
+resource "kubernetes_service_v1" "postgres_service" {
+  metadata {
+    name      = "postgres-service"
+    namespace = kubernetes_namespace_v1.app_ns.metadata[0].name
+  }
+
+  spec {
+    selector = {
+      app = "postgres"
+    }
+
+    port {
+      port        = 5432
+      target_port = var.postgres_port
+    }
+
+    type = "ClusterIP"
+  }
+}
+```
+🔑 Observação: image_pull_policy = "IfNotPresent" evita erros de ErrImagePull usando imagens locais do Docker.
+
 ✅ 5. Inicializar Terraform
 
 Dentro da pasta terraform/:
 
 ```
-terraform init
-```
-
-Baixa plugins e providers necessários
-Se houver problema de versão do provider, rode:
-
-```
+cd terraform
 terraform init -upgrade
 ```
-✅ 6. Visualizar o plano
+
+✅ 6. Planejar recursos
 
 ```
 terraform plan
@@ -136,11 +363,7 @@ Confirme que deployments, pods e services estão rodando no namespace app-namesp
 
 ```
 kubectl port-forward svc/my-app-service 8080:80 -n app-namespace
-```
-Abra no navegador:
-
-```
-http://localhost:8080
+# Abra no navegador: http://localhost:8080
 ```
 
 ✅ 10. Acessar o PostgreSQL
@@ -159,13 +382,9 @@ Password: admin123
 Database: mydb
 ```
 
-✅ 11. Monitoramento (opcional)
+✅ Monitoramento (opcional)
 
-Se você tiver Helm configurado, rode os charts em:
-
-```
-helm/prometheus-grafana.tf
-```
+Se Helm estiver configurado, rode os charts em helm/prometheus-grafana.tf.
 
 🧠 Dicas importantes
 
@@ -197,3 +416,39 @@ Automatizar em um pipeline CI/CD
 Adicionar Ingress para expor a aplicação
 Adicionar Secrets/ConfigMaps via Terraform
 Gerenciar volumes persistentes
+
+💡 Como resolver:
+
+Revisar se o cluster está limpo
+Você está usando Minikube. Antes de reaplicar, é mais seguro destruir os recursos antigos que podem estar conflitantes:
+
+```
+kubectl delete deployment my-app -n app-namespace
+kubectl delete deployment postgres -n app-namespace
+kubectl delete svc my-app-service -n app-namespace
+kubectl delete svc postgres-service -n app-namespace
+kubectl delete namespace app-namespace
+```
+
+Isso limpa tudo do Terraform no cluster.
+
+Opcional: Resetar o estado local do Terraform
+Caso queira “começar do zero” no Terraform:
+
+```
+rm terraform/terraform.tfstate
+rm terraform/terraform.tfstate.backup
+```
+
+⚠️ Faça isso apenas se você não tem recursos críticos aplicados, pois você vai perder o controle do estado atual.
+
+Aplicar novamente
+Inicialize o Terraform e aplique:
+
+```
+cd terraform
+terraform init -upgrade
+terraform plan
+terraform apply
+```
+Com image_pull_policy = "IfNotPresent" adicionado no main.tf, suas imagens locais serão usadas e o ErrImagePull não vai mais ocorrer.

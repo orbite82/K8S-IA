@@ -1,35 +1,35 @@
 # ======================
-# Variáveis do Cluster / Namespace
+# Namespace
 # ======================
 variable "namespace_name" {
-  description = "Nome do namespace onde a aplicação será implantada"
+  description = "Nome do namespace onde a aplicação e PostgreSQL serão criados"
   type        = string
   default     = "app-namespace"
 }
 
 # ======================
-# Variáveis da Aplicação
+# Aplicação Python
 # ======================
 variable "app_image" {
-  description = "Imagem Docker da aplicação"
+  description = "Imagem Docker da aplicação Python"
   type        = string
   default     = "my-local-app:latest"
 }
 
 variable "app_replicas" {
-  description = "Número de réplicas da aplicação"
+  description = "Número de réplicas do deployment da aplicação"
   type        = number
   default     = 2
 }
 
 variable "app_container_port" {
-  description = "Porta do container da aplicação"
+  description = "Porta do container da aplicação Flask"
   type        = number
-  default     = 8080
+  default     = 5000
 }
 
 # ======================
-# Variáveis do PostgreSQL
+# PostgreSQL
 # ======================
 variable "postgres_image" {
   description = "Imagem Docker do PostgreSQL"
@@ -37,22 +37,10 @@ variable "postgres_image" {
   default     = "postgres:15-alpine"
 }
 
-variable "postgres_user" {
-  description = "Usuário do PostgreSQL"
-  type        = string
-  default     = "admin"
-}
-
-variable "postgres_password" {
-  description = "Senha do PostgreSQL"
-  type        = string
-  default     = "admin123"
-}
-
-variable "postgres_db" {
-  description = "Banco de dados inicial do PostgreSQL"
-  type        = string
-  default     = "mydb"
+variable "postgres_replicas" {
+  description = "Número de réplicas do deployment PostgreSQL"
+  type        = number
+  default     = 1
 }
 
 variable "postgres_port" {
@@ -61,8 +49,20 @@ variable "postgres_port" {
   default     = 5432
 }
 
-variable "postgres_replicas" {
-  description = "Número de réplicas do PostgreSQL"
-  type        = number
-  default     = 1
+variable "postgres_user" {
+  description = "Usuário do banco PostgreSQL"
+  type        = string
+  default     = "admin"
+}
+
+variable "postgres_password" {
+  description = "Senha do banco PostgreSQL"
+  type        = string
+  default     = "admin123"
+}
+
+variable "postgres_db" {
+  description = "Nome do banco de dados PostgreSQL"
+  type        = string
+  default     = "mydb"
 }

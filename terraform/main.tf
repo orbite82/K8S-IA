@@ -39,6 +39,7 @@ resource "kubernetes_deployment_v1" "app" {
         container {
           name  = "my-app"
           image = var.app_image
+          image_pull_policy = "IfNotPresent" # <<< ESSENCIAL
 
           port {
             container_port = var.app_container_port
@@ -92,6 +93,7 @@ resource "kubernetes_deployment_v1" "postgres" {
         container {
           name  = "postgres"
           image = var.postgres_image
+          image_pull_policy = "IfNotPresent" # <<< ESSENCIAL
 
           port {
             container_port = var.postgres_port
@@ -141,8 +143,8 @@ resource "kubernetes_service_v1" "app_service" {
     }
 
     port {
-      port        = 80
-      target_port = var.app_container_port
+      port        = 80                # Porta externa
+      target_port = var.app_container_port # Porta do container (Flask)
     }
 
     type = "ClusterIP"

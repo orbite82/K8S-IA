@@ -1,5 +1,13 @@
 # ======================
-# Outputs da Aplicação
+# Outputs: Namespace
+# ======================
+output "namespace_name" {
+  description = "Nome do namespace criado no Kubernetes"
+  value       = kubernetes_namespace_v1.app_ns.metadata[0].name
+}
+
+# ======================
+# Outputs: Aplicação
 # ======================
 output "app_service_name" {
   description = "Nome do Service da aplicação"
@@ -12,7 +20,7 @@ output "app_service_cluster_ip" {
 }
 
 # ======================
-# Outputs do PostgreSQL
+# Outputs: PostgreSQL
 # ======================
 output "postgres_service_name" {
   description = "Nome do Service do PostgreSQL"
@@ -22,9 +30,4 @@ output "postgres_service_name" {
 output "postgres_service_cluster_ip" {
   description = "ClusterIP do Service do PostgreSQL"
   value       = kubernetes_service_v1.postgres_service.spec[0].cluster_ip
-}
-
-output "namespace_name" {
-  description = "Namespace onde os recursos foram criados"
-  value       = kubernetes_namespace_v1.app_ns.metadata[0].name
 }
