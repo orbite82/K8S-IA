@@ -1,18 +1,9 @@
-terraform {
-  required_providers {
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "~> 2.19"
-    }
-  }
-};
-
 # ======================
 # Namespace
 # ======================
 resource "kubernetes_namespace_v1" "app_ns" {
   metadata {
-    name = "app-namespace"
+    name = var.namespace_name
   }
 }
 
@@ -29,7 +20,7 @@ resource "kubernetes_deployment_v1" "app" {
   }
 
   spec {
-    replicas = 2
+    replicas = var.app_replicas
 
     selector {
       match_labels = {
@@ -47,10 +38,10 @@ resource "kubernetes_deployment_v1" "app" {
       spec {
         container {
           name  = "my-app"
-          image = "my-local-app:latest"
+          image = var.app_image
 
           port {
-            container_port = 8080
+            container_port = var.app_container_port
           }
 
           resources {
@@ -82,7 +73,7 @@ resource "kubernetes_deployment_v1" "postgres" {
   }
 
   spec {
-    replicas = 1
+    replicas = var.postgres_replicas
 
     selector {
       match_labels = {
@@ -100,23 +91,23 @@ resource "kubernetes_deployment_v1" "postgres" {
       spec {
         container {
           name  = "postgres"
-          image = "postgres:15-alpine"
+          image = var.postgres_image
 
           port {
-            container_port = 5432
+            container_port = var.postgres_port
           }
 
           env {
             name  = "POSTGRES_USER"
-            value = "admin"
+            value = var.postgres_user
           }
           env {
             name  = "POSTGRES_PASSWORD"
-            value = "admin123"
+            value = var.postgres_password
           }
           env {
             name  = "POSTGRES_DB"
-            value = "mydb"
+            value = var.postgres_db
           }
 
           resources {
@@ -136,7 +127,7 @@ resource "kubernetes_deployment_v1" "postgres" {
 }
 
 # ======================
-# Services
+# Service: Aplicação
 # ======================
 resource "kubernetes_service_v1" "app_service" {
   metadata {
@@ -151,13 +142,16 @@ resource "kubernetes_service_v1" "app_service" {
 
     port {
       port        = 80
-      target_port = 8080
+      target_port = var.app_container_port
     }
 
     type = "ClusterIP"
   }
 }
 
+# ======================
+# Service: PostgreSQL
+# ======================
 resource "kubernetes_service_v1" "postgres_service" {
   metadata {
     name      = "postgres-service"
@@ -171,7 +165,7 @@ resource "kubernetes_service_v1" "postgres_service" {
 
     port {
       port        = 5432
-      target_port = 5432
+      target_port = var.postgres_port
     }
 
     type = "ClusterIP"
