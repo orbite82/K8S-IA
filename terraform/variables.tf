@@ -1,79 +1,68 @@
-##########################################
-# VARIABLES.TF - Variáveis do projeto
-##########################################
-
-# Namespace da aplicação
-variable "app_namespace" {
-  description = "Namespace da aplicação"
+# ======================
+# Variáveis do Cluster / Namespace
+# ======================
+variable "namespace_name" {
+  description = "Nome do namespace onde a aplicação será implantada"
   type        = string
-  default     = "app"
+  default     = "app-namespace"
 }
 
-# Aplicação
-variable "app_name" {
-  description = "Nome da aplicação"
-  type        = string
-  default     = "my-app"
-}
-
+# ======================
+# Variáveis da Aplicação
+# ======================
 variable "app_image" {
-  description = "Imagem da aplicação"
+  description = "Imagem Docker da aplicação"
   type        = string
-  default     = "nginx:latest"
+  default     = "my-local-app:latest"
 }
 
 variable "app_replicas" {
   description = "Número de réplicas da aplicação"
   type        = number
-  default     = 1
+  default     = 2
 }
 
-variable "app_port" {
-  description = "Porta exposta da aplicação"
+variable "app_container_port" {
+  description = "Porta do container da aplicação"
   type        = number
-  default     = 80
+  default     = 8080
 }
 
-# Banco de dados PostgreSQL
-variable "postgres_name" {
-  description = "Nome do deployment PostgreSQL"
-  type        = string
-  default     = "postgres"
-}
-
+# ======================
+# Variáveis do PostgreSQL
+# ======================
 variable "postgres_image" {
-  description = "Imagem do PostgreSQL"
+  description = "Imagem Docker do PostgreSQL"
   type        = string
-  default     = "postgres:15"
+  default     = "postgres:15-alpine"
 }
 
-variable "postgres_port" {
-  description = "Porta do PostgreSQL"
-  type        = number
-  default     = 5432
+variable "postgres_user" {
+  description = "Usuário do PostgreSQL"
+  type        = string
+  default     = "admin"
 }
 
 variable "postgres_password" {
   description = "Senha do PostgreSQL"
   type        = string
-  default     = "password123"
+  default     = "admin123"
 }
 
-# Observabilidade (Helm)
-variable "monitoring_namespace" {
-  description = "Namespace para Prometheus e Grafana"
+variable "postgres_db" {
+  description = "Banco de dados inicial do PostgreSQL"
   type        = string
-  default     = "monitoring"
+  default     = "mydb"
 }
 
-variable "grafana_admin_user" {
-  description = "Usuário admin do Grafana"
-  type        = string
-  default     = "admin"
+variable "postgres_port" {
+  description = "Porta do container PostgreSQL"
+  type        = number
+  default     = 5432
 }
 
-variable "grafana_admin_password" {
-  description = "Senha admin do Grafana"
-  type        = string
-  default     = "admin"
+variable "postgres_replicas" {
+  description = "Número de réplicas do PostgreSQL"
+  type        = number
+  default     = 1
 }

@@ -1,33 +1,30 @@
-##########################################
-# OUTPUTS.TF - Informações úteis pós deploy
-##########################################
-
-# Namespace da aplicação
-output "app_namespace" {
-  description = "Namespace da aplicação"
-  value       = kubernetes_namespace.app_ns.metadata[0].name
+# ======================
+# Outputs da Aplicação
+# ======================
+output "app_service_name" {
+  description = "Nome do Service da aplicação"
+  value       = kubernetes_service_v1.app_service.metadata[0].name
 }
 
-# Nome do deployment da aplicação
-output "app_deployment_name" {
-  description = "Nome do deployment da aplicação"
-  value       = kubernetes_deployment.app.metadata[0].name
+output "app_service_cluster_ip" {
+  description = "ClusterIP do Service da aplicação"
+  value       = kubernetes_service_v1.app_service.spec[0].cluster_ip
 }
 
-# NodePort da aplicação (acesso externo)
-output "app_node_port" {
-  description = "NodePort para acessar a aplicação"
-  value       = kubernetes_service.app_svc.spec[0].port[0].node_port
+# ======================
+# Outputs do PostgreSQL
+# ======================
+output "postgres_service_name" {
+  description = "Nome do Service do PostgreSQL"
+  value       = kubernetes_service_v1.postgres_service.metadata[0].name
 }
 
-# ClusterIP do PostgreSQL
 output "postgres_service_cluster_ip" {
-  description = "ClusterIP do PostgreSQL"
-  value       = kubernetes_service.postgres_svc.spec[0].cluster_ip
+  description = "ClusterIP do Service do PostgreSQL"
+  value       = kubernetes_service_v1.postgres_service.spec[0].cluster_ip
 }
 
-# Nome do deployment PostgreSQL
-output "postgres_deployment_name" {
-  description = "Nome do deployment PostgreSQL"
-  value       = kubernetes_deployment.postgres.metadata[0].name
+output "namespace_name" {
+  description = "Namespace onde os recursos foram criados"
+  value       = kubernetes_namespace_v1.app_ns.metadata[0].name
 }

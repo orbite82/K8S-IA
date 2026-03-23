@@ -1,17 +1,12 @@
-##########################################
-# PROVIDERS.TF - Configuração dos provedores
-##########################################
-
-# Provedor Kubernetes
-provider "kubernetes" {
-  description = "Conecta ao cluster Kubernetes local via kubeconfig"
-  config_path = "~/.kube/config"
+terraform {
+  required_providers {
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.19"
+    }
+  }
 }
 
-# Provedor Helm
-provider "helm" {
-  description = "Usa Helm para instalar charts dentro do cluster Kubernetes"
-  kubernetes {
-    config_path = "~/.kube/config"
-  }
+provider "kubernetes" {
+  config_path = "~/.kube/config"
 }
