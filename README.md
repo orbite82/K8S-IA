@@ -80,6 +80,7 @@ docker images
 Crie um cluster Kubernetes local
 Você precisa de um cluster ativo. Pode ser Minikube ou Kind. Exemplo com Minikube:
 
+---
 ```
 minikube start --profile k8s-ia --driver=docker
 ```
@@ -91,7 +92,7 @@ setup-minikube.sh
 
 Crie esse arquivo dentro de terraform/:
 
-```
+
 #!/bin/bash
 
 # ======================================================
@@ -114,7 +115,7 @@ minikube addons enable storage-provisioner --profile $PROFILE_NAME
 kubectl config use-context $PROFILE_NAME
 
 echo "✅ Minikube pronto! Cluster ativo:"
-```
+
 
 ```
 kubectl cluster-info
