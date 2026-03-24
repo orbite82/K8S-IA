@@ -114,6 +114,9 @@ minikube addons enable storage-provisioner --profile $PROFILE_NAME
 kubectl config use-context $PROFILE_NAME
 
 echo "✅ Minikube pronto! Cluster ativo:"
+```
+
+```
 kubectl cluster-info
 kubectl get nodes
 ```
